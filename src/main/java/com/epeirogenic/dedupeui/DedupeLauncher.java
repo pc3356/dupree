@@ -1,13 +1,23 @@
 package com.epeirogenic.dedupeui;
 
+import com.epeirogenic.dedupe.FileRecurse;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.event.*;
-import java.io.File;
+import java.io.*;
+import java.net.URL;
+import java.util.Properties;
+import java.util.ResourceBundle;
 
 public class DedupeLauncher extends JDialog {
     
     private File startDirectory;
+
+    FileRecurse fileRecurse;
+
+    private Properties properties;
 
     private void onBrowse() {
         JFileChooser fileChooser = new JFileChooser();
@@ -35,6 +45,10 @@ public class DedupeLauncher extends JDialog {
     }
 
     private void onOK() {
+
+        File[] files = startDirectory.listFiles((java.io.FileFilter) FileFilterUtils.directoryFileFilter());
+
+        // initialise progress bar based on this...
 
 
 
@@ -86,6 +100,19 @@ public class DedupeLauncher extends JDialog {
                 onCancel();
             }
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        readProperties(getClass().getResourceAsStream("dupree.properties"));
+    }
+
+    private void readProperties(InputStream propertiesStream) {
+
+        properties = new Properties();
+        try {
+            properties.load(propertiesStream);
+        } catch(IOException ioe) {
+            System.err.println("Unable to load properties");
+            System.exit(-1);
+        }
     }
 
     class DirectoryFilter extends FileFilter {
