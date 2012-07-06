@@ -63,6 +63,7 @@ public class DedupeLauncher extends JDialog {
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
         setTitle("Dupree");
+        setResizable(false);
 
         buttonOK.setEnabled(false);
         buttonOK.addActionListener(new ActionListener() {
