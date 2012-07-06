@@ -140,6 +140,6 @@ public class DedupeLauncher extends JDialog {
     private JButton buttonCancel;
     private JTextField textField1;
     private JButton chooseButton;
-    private JProgressBar progressBar1;
     private JScrollPane infoPanel;
+    private JTextField pathField;
 }

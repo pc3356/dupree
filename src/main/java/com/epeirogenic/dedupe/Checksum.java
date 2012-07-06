@@ -5,6 +5,9 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.MessageDigest;
 
+/**
+ * http://www.rgagnon.com/javadetails/java-0416.html
+ */
 public enum Checksum {
 
     MD5("MD5"),
@@ -33,16 +36,10 @@ public enum Checksum {
         return complete.digest();
     }
 
-    // see this How-to for a faster way to convert
-    // a byte array to a HEX string
     public String generateFor(File file) throws Exception {
 
         byte[] checksumBytes = createChecksum(file);
-        String result = "";
-        for (byte b : checksumBytes) {
-            result += Integer.toString( ( b & 0xff ) + 0x100, 16).substring( 1 );
-        }
-        return result;
+        return getHex(checksumBytes);
     }
 
     public static void main(String args[]) {
@@ -57,5 +54,27 @@ public enum Checksum {
         catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static final String HEXES = "0123456789ABCDEF";
+
+    private String getHex(byte[] checksumBytes) {
+        if ( checksumBytes == null ) {
+            return null;
+        }
+        final StringBuilder hex = new StringBuilder( 2 * checksumBytes.length );
+        for ( final byte b : checksumBytes ) {
+            hex.append(HEXES.charAt((b & 0xF0) >> 4))
+                    .append(HEXES.charAt((b & 0x0F)));
+        }
+        return hex.toString();
+    }
+
+    private String getHexString(byte[] checksumBytes) {
+        String result = "";
+        for (byte b : checksumBytes) {
+            result += Integer.toString( ( b & 0xff ) + 0x100, 16).substring( 1 );
+        }
+        return result;
     }
 }
