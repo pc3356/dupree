@@ -18,7 +18,7 @@ public class DedupeIntegrationTest {
 
     @Before
     public void setUp() {
-        fileRecurse = new FileRecurse(Checksum.SHA256);
+        fileRecurse = new FileRecurse(Checksum.SHA256, FileRecurse.NOOP_CALLBACK);
     }
     
     @Test
@@ -26,7 +26,7 @@ public class DedupeIntegrationTest {
 
         File root = new ClassPathResource("fixtures/directory_tree").getFile();
         Map<String, Set<File>> checksums = new HashMap<String, Set<File>>();
-        fileRecurse.iterate(root, checksums, FileRecurse.NOOP_CALLBACK);
+        fileRecurse.iterate(root, checksums);
         assertThat(checksums.size(), not(0));
 
         Map<String, Set<File>> duplicates = new LinkedHashMap<String, Set<File>>();
@@ -65,7 +65,7 @@ public class DedupeIntegrationTest {
         Resource base = new ClassPathResource("fixtures/empty_directory");
         File root = new ClassPathResource("fixtures/empty_directory").getFile();
         Map<String, Set<File>> checksums = new HashMap<String, Set<File>>();
-        fileRecurse.iterate(root, checksums, FileRecurse.NOOP_CALLBACK);
+        fileRecurse.iterate(root, checksums);
         assertThat(checksums.size(), is(0));
     }
 

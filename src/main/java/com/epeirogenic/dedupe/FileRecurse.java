@@ -1,6 +1,5 @@
 package com.epeirogenic.dedupe;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.*;
 import org.apache.log4j.Logger;
 
@@ -12,16 +11,14 @@ public class FileRecurse {
 
     private final static Logger LOGGER = Logger.getLogger(FileRecurse.class);
 
-    private Checksum checksum;
+    private final Checksum checksum;
+    private final Callback callback;
     private boolean ignoreHiddenDirectories = true;
     private boolean ignoreHiddenFiles = true;
 
-    public FileRecurse(Checksum checksum) {
-        setChecksum(checksum);
-    }
-
-    public void setChecksum(Checksum checksum) {
+    public FileRecurse(Checksum checksum, Callback callback) {
         this.checksum = checksum;
+        this.callback = callback;
     }
 
     public void setIgnoreHiddenDirectories(boolean ignore) {
@@ -32,7 +29,7 @@ public class FileRecurse {
         ignoreHiddenFiles = ignore;
     }
 
-    private void iterateOverFiles(File[] files, Map<String, Set<File>> checksumMap, FileRecurseCallback callback) {
+    private void iterateOverFiles(File[] files, Map<String, Set<File>> checksumMap) {
         for(File file : files) {
             callback.currentFile(file);
             try {
@@ -56,15 +53,15 @@ public class FileRecurse {
         }
     } 
             
-    public void iterate(File root, Map<String, Set<File>> checksumMap, FileRecurseCallback callback) {
+    public void iterate(File root, Map<String, Set<File>> checksumMap) {
 
         File[] files = root.listFiles( getFileFilter() );
-        iterateOverFiles(files, checksumMap, callback);
+        iterateOverFiles(files, checksumMap);
 
         File[] subDirectories = root.listFiles( getDirectoryFilter() );
         for(File subDirectory : subDirectories) {
             callback.currentDirectory(subDirectory);
-            iterate(subDirectory, checksumMap, callback);
+            iterate(subDirectory, checksumMap);
         }
     }
     
@@ -84,14 +81,14 @@ public class FileRecurse {
         }
     }
 
-    public interface FileRecurseCallback {
+    public interface Callback {
 
         public void currentFile(File file);
 
         public void currentDirectory(File directory);
     }
 
-    public final static FileRecurseCallback SYSTEM_CALLBACK = new FileRecurseCallback() {
+    public final static Callback SYSTEM_CALLBACK = new Callback() {
 
         @Override
         public void currentFile(File file) {
@@ -104,7 +101,7 @@ public class FileRecurse {
         }
     };
 
-    public final static FileRecurseCallback NOOP_CALLBACK = new FileRecurseCallback() {
+    public final static Callback NOOP_CALLBACK = new Callback() {
 
         @Override
         public void currentFile(File file) {}
@@ -113,7 +110,7 @@ public class FileRecurse {
         public void currentDirectory(File directory) {}
     };
 
-    public final static FileRecurseCallback LOG_CALLBACK = new FileRecurseCallback() {
+    public final static Callback LOG_CALLBACK = new Callback() {
         @Override
         public void currentFile(File file) {
             LOGGER.info(file.getAbsolutePath());

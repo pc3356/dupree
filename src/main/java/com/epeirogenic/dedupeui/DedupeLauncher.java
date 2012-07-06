@@ -1,23 +1,24 @@
 package com.epeirogenic.dedupeui;
 
+import com.epeirogenic.dedupe.Checksum;
 import com.epeirogenic.dedupe.FileRecurse;
-import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.lang.StringUtils;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.event.*;
 import java.io.*;
-import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
-import java.util.ResourceBundle;
+import java.util.Set;
 
 public class DedupeLauncher extends JDialog {
     
     private File startDirectory;
-
-    FileRecurse fileRecurse;
-
+    private FileRecurse fileRecurse;
     private Properties properties;
+    private Map<String, Set<File>> checksumMap;
 
     private void onBrowse() {
         JFileChooser fileChooser = new JFileChooser();
@@ -36,23 +37,21 @@ public class DedupeLauncher extends JDialog {
             buttonOK.setEnabled(true);
             buttonCancel.setEnabled(true);
 
+            startDirectoryField.setText(startDirectory.getAbsolutePath());
+
         } else {
 
             System.out.println("No Selection ");
 
         }
-
     }
 
     private void onOK() {
 
-        File[] files = startDirectory.listFiles((java.io.FileFilter) FileFilterUtils.directoryFileFilter());
-
-        // initialise progress bar based on this...
-
-
-
-        dispose();
+        // start progress with callbacks
+        fileRecurse = new FileRecurse(Checksum.SHA256, new DedupeUICallback(pathField));
+        fileRecurse.iterate(startDirectory, checksumMap);
+        //dispose();
     }
 
     private void onCancel() {
@@ -60,10 +59,10 @@ public class DedupeLauncher extends JDialog {
     }
 
     public DedupeLauncher() {
-        setContentPane(contentPane);
+        setContentPane(mainDialog);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
-        setTitle("Duplicity");
+        setTitle("Dupree");
 
         buttonOK.setEnabled(false);
         buttonOK.addActionListener(new ActionListener() {
@@ -95,13 +94,15 @@ public class DedupeLauncher extends JDialog {
         });
 
 // call onCancel() on ESCAPE
-        contentPane.registerKeyboardAction(new ActionListener() {
+        mainDialog.registerKeyboardAction(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 onCancel();
             }
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-        readProperties(getClass().getResourceAsStream("dupree.properties"));
+        //readProperties(getClass().getResourceAsStream("dupree.properties"));
+
+        checksumMap = new HashMap<String, Set<File>>();
     }
 
     private void readProperties(InputStream propertiesStream) {
@@ -109,6 +110,7 @@ public class DedupeLauncher extends JDialog {
         properties = new Properties();
         try {
             properties.load(propertiesStream);
+            properties.list(System.out);
         } catch(IOException ioe) {
             System.err.println("Unable to load properties");
             System.exit(-1);
@@ -128,6 +130,35 @@ public class DedupeLauncher extends JDialog {
         }
     }
 
+    class DedupeUICallback implements FileRecurse.Callback {
+
+        private final JTextField currentFileField;
+
+        public DedupeUICallback(JTextField currentFileField) {
+            this.currentFileField = currentFileField;
+        }
+
+        @Override
+        public void currentFile(File file) {
+
+            try {
+                String canonicalPath = file.getCanonicalPath();
+                String abbreviatedPath = StringUtils.abbreviateMiddle(canonicalPath, "...", 30);
+
+                currentFileField.setText(abbreviatedPath);
+
+            } catch(IOException ioe) {
+                // swallow?
+                System.err.println(ioe);
+            }
+        }
+
+        @Override
+        public void currentDirectory(File directory) {
+            System.out.println(directory.getAbsolutePath());
+        }
+    }
+
     public static void main(String[] args) {
         DedupeLauncher dialog = new DedupeLauncher();
         dialog.pack();
@@ -135,11 +166,11 @@ public class DedupeLauncher extends JDialog {
         System.exit(0);
     }
 
-    private JPanel contentPane;
+    private JPanel mainDialog;
     private JButton buttonOK;
     private JButton buttonCancel;
-    private JTextField textField1;
     private JButton chooseButton;
     private JScrollPane infoPanel;
     private JTextField pathField;
+    private JTextField startDirectoryField;
 }
