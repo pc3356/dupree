@@ -3,15 +3,14 @@ package com.epeirogenic.dedupeui;
 import com.epeirogenic.dedupe.Checksum;
 import com.epeirogenic.dedupe.FileRecurse;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.event.*;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 public class DedupeLauncher extends JDialog {
     
@@ -19,6 +18,7 @@ public class DedupeLauncher extends JDialog {
     private FileRecurse fileRecurse;
     private Properties properties;
     private Map<String, Set<File>> checksumMap;
+    private DedupeWorker worker;
 
     private void onBrowse() {
         JFileChooser fileChooser = new JFileChooser();
@@ -49,12 +49,18 @@ public class DedupeLauncher extends JDialog {
     private void onOK() {
 
         // start progress with callbacks
-        fileRecurse = new FileRecurse(Checksum.SHA256, new DedupeUICallback(pathField));
-        fileRecurse.iterate(startDirectory, checksumMap);
+        try {
+            worker.doInBackground();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         //dispose();
     }
 
     private void onCancel() {
+
+        // terminate any running processes
+        worker.cancel(true);
         dispose();
     }
 
@@ -101,20 +107,48 @@ public class DedupeLauncher extends JDialog {
             }
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-        //readProperties(getClass().getResourceAsStream("dupree.properties"));
+        readProperties("dupree.properties");
 
         checksumMap = new HashMap<String, Set<File>>();
+        worker = new DedupeWorker();
     }
 
-    private void readProperties(InputStream propertiesStream) {
+    private void readProperties(String filename) {
 
         properties = new Properties();
+
+        Resource resource = new ClassPathResource(filename);
+
         try {
-            properties.load(propertiesStream);
+            properties.load(resource.getInputStream());
             properties.list(System.out);
         } catch(IOException ioe) {
             System.err.println("Unable to load properties");
             System.exit(-1);
+        }
+    }
+
+    class DedupeWorker extends SwingWorker<Void, String> {
+
+        @Override
+        protected Void doInBackground() throws Exception {
+            fileRecurse = new FileRecurse(Checksum.SHA256, new DedupeUICallback(worker, pathField));
+            fileRecurse.iterate(startDirectory, checksumMap);
+            return null;
+        }
+
+        public void publish(String message) {
+            super.publish(message);
+        }
+
+        @Override
+        protected void process(List<String> messages) {
+            pathField.setText(messages.get(messages.size() - 1));
+        }
+
+        @Override
+        protected void done() {
+            super.done();
         }
     }
 
@@ -133,10 +167,10 @@ public class DedupeLauncher extends JDialog {
 
     class DedupeUICallback implements FileRecurse.Callback {
 
-        private final JTextField currentFileField;
+        private final DedupeWorker dw;
 
-        public DedupeUICallback(JTextField currentFileField) {
-            this.currentFileField = currentFileField;
+        public DedupeUICallback(DedupeWorker dedupeWorker, JTextField currentFileField) {
+            this.dw = dedupeWorker;
         }
 
         @Override
@@ -145,8 +179,7 @@ public class DedupeLauncher extends JDialog {
             try {
                 String canonicalPath = file.getCanonicalPath();
                 String abbreviatedPath = StringUtils.abbreviateMiddle(canonicalPath, "...", 30);
-
-                currentFileField.setText(abbreviatedPath);
+                dw.publish(abbreviatedPath);
 
             } catch(IOException ioe) {
                 // swallow?
