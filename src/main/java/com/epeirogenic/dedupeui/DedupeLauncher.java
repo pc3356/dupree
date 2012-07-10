@@ -137,13 +137,13 @@ public class DedupeLauncher extends JDialog {
             return null;
         }
 
-        public void publish(String message) {
-            super.publish(message);
-        }
-
         @Override
         protected void process(List<String> messages) {
             pathField.setText(messages.get(messages.size() - 1));
+        }
+
+        public void publish(String message) {
+            super.publish(message);
         }
 
         @Override
@@ -178,7 +178,7 @@ public class DedupeLauncher extends JDialog {
 
             try {
                 String canonicalPath = file.getCanonicalPath();
-                String abbreviatedPath = StringUtils.abbreviateMiddle(canonicalPath, "...", 30);
+                String abbreviatedPath = StringUtils.abbreviateMiddle(canonicalPath, "...", 80);
                 dw.publish(abbreviatedPath);
 
             } catch(IOException ioe) {
