@@ -8,9 +8,18 @@ import org.springframework.core.io.Resource;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 public class DedupeLauncher extends JDialog {
     
@@ -21,7 +30,7 @@ public class DedupeLauncher extends JDialog {
     private DedupeWorker worker;
 
     private void onBrowse() {
-        JFileChooser fileChooser = new JFileChooser();
+        final JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Choose start directory");
         fileChooser.setCurrentDirectory(new File(System.getProperty("user.home", "/")));
 
@@ -113,7 +122,7 @@ public class DedupeLauncher extends JDialog {
         worker = new DedupeWorker();
     }
 
-    private void readProperties(String filename) {
+    private void readProperties(final String filename) {
 
         properties = new Properties();
 
@@ -138,11 +147,11 @@ public class DedupeLauncher extends JDialog {
         }
 
         @Override
-        protected void process(List<String> messages) {
+        protected void process(final List<String> messages) {
             pathField.setText(messages.get(messages.size() - 1));
         }
 
-        public void publish(String message) {
+        public void publish(final String message) {
             super.publish(message);
         }
 
@@ -169,32 +178,32 @@ public class DedupeLauncher extends JDialog {
 
         private final DedupeWorker dw;
 
-        public DedupeUICallback(DedupeWorker dedupeWorker, JTextField currentFileField) {
+        public DedupeUICallback(final DedupeWorker dedupeWorker, final JTextField currentFileField) {
             this.dw = dedupeWorker;
         }
 
         @Override
-        public void currentFile(File file) {
+        public void currentFile(final File file) {
 
             try {
-                String canonicalPath = file.getCanonicalPath();
-                String abbreviatedPath = StringUtils.abbreviateMiddle(canonicalPath, "...", 80);
+                final String canonicalPath = file.getCanonicalPath();
+                final String abbreviatedPath = StringUtils.abbreviateMiddle(canonicalPath, "...", 80);
                 dw.publish(abbreviatedPath);
 
-            } catch(IOException ioe) {
+            } catch(final IOException ioe) {
                 // swallow?
                 System.err.println(ioe);
             }
         }
 
         @Override
-        public void currentDirectory(File directory) {
+        public void currentDirectory(final File directory) {
             System.out.println(directory.getAbsolutePath());
         }
     }
 
-    public static void main(String[] args) {
-        DedupeLauncher dialog = new DedupeLauncher();
+    public static void main(final String[] args) {
+        final DedupeLauncher dialog = new DedupeLauncher();
         dialog.pack();
         dialog.setVisible(true);
         System.exit(0);

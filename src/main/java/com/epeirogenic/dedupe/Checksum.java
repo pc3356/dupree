@@ -16,7 +16,7 @@ public enum Checksum {
 
     private final String algorithm;
 
-    Checksum(String algorithm) {
+    Checksum(final String algorithm) {
         this.algorithm = algorithm;
     }
 
@@ -24,7 +24,7 @@ public enum Checksum {
         InputStream fis =  new FileInputStream(file);
 
         byte[] buffer = new byte[1024];
-        MessageDigest complete = MessageDigest.getInstance(algorithm);
+        final MessageDigest complete = MessageDigest.getInstance(algorithm);
         int numRead;
         do {
             numRead = fis.read(buffer);
@@ -36,29 +36,29 @@ public enum Checksum {
         return complete.digest();
     }
 
-    public String generateFor(File file) throws Exception {
+    public String generateFor(final File file) throws Exception {
 
         byte[] checksumBytes = createChecksum(file);
         return getHex(checksumBytes);
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
 
-        Checksum checksum = Checksum.MD5;
+        final Checksum checksum = Checksum.MD5;
 
         try {
-            for(String filename : args) {
+            for(final String filename : args) {
                 System.out.println(filename + " : " + checksum.generateFor(new File(filename)));
             }
         }
-        catch (Exception e) {
+        catch (final Exception e) {
             e.printStackTrace();
         }
     }
 
     private static final String HEXES = "0123456789ABCDEF";
 
-    private String getHex(byte[] checksumBytes) {
+    private String getHex(final byte[] checksumBytes) {
         if ( checksumBytes == null ) {
             return null;
         }
@@ -70,9 +70,9 @@ public enum Checksum {
         return hex.toString();
     }
 
-    private String getHexString(byte[] checksumBytes) {
+    private String getHexString(final byte[] checksumBytes) {
         String result = "";
-        for (byte b : checksumBytes) {
+        for (final byte b : checksumBytes) {
             result += Integer.toString( ( b & 0xff ) + 0x100, 16).substring( 1 );
         }
         return result;
