@@ -2,9 +2,8 @@ package com.epeirogenic.dedupeui;
 
 import com.epeirogenic.dedupe.Checksum;
 import com.epeirogenic.dedupe.FileRecurse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -20,17 +19,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import org.springframework.core.io.ClassPathResource;
 
+@Slf4j
 public class DedupeLauncher extends JDialog {
     
     private File startDirectory;
-    private FileRecurse fileRecurse;
-    private Properties properties;
-    private Map<String, Set<File>> checksumMap;
-    private DedupeWorker worker;
+    private final Map<String, Set<File>> checksumMap;
+    private final DedupeWorker worker;
 
     private void onBrowse() {
-        final JFileChooser fileChooser = new JFileChooser();
+        var fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Choose start directory");
         fileChooser.setCurrentDirectory(new File(System.getProperty("user.home", "/")));
 
@@ -39,8 +38,8 @@ public class DedupeLauncher extends JDialog {
 
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 
-            System.out.println("getCurrentDirectory(): " + fileChooser.getCurrentDirectory());
-            System.out.println("getSelectedFile() : " + fileChooser.getSelectedFile());
+            log.info("getCurrentDirectory(): {}", fileChooser.getCurrentDirectory());
+            log.info("getSelectedFile() : {}", fileChooser.getSelectedFile());
 
             startDirectory = fileChooser.getSelectedFile();
             buttonOK.setEnabled(true);
@@ -61,7 +60,12 @@ public class DedupeLauncher extends JDialog {
         try {
             worker.doInBackground();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Exception encountered: {}", e.getMessage());
+            if (log.isDebugEnabled()) {
+                for ( var m : e.getStackTrace()) {
+                    logStackTraceElement(m);
+                }
+            }
         }
         //dispose();
     }
@@ -81,25 +85,12 @@ public class DedupeLauncher extends JDialog {
         setResizable(false);
 
         buttonOK.setEnabled(false);
-        buttonOK.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onOK();
-            }
-        });
+        buttonOK.addActionListener(e -> onOK());
 
         buttonCancel.setEnabled(false);
-        buttonCancel.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onCancel();
-            }
-        });
+        buttonCancel.addActionListener(e -> onCancel());
 
-        chooseButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                onBrowse();
-            }
-        });
+        chooseButton.addActionListener(actionEvent -> onBrowse());
 
 // call onCancel() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -110,23 +101,19 @@ public class DedupeLauncher extends JDialog {
         });
 
 // call onCancel() on ESCAPE
-        mainDialog.registerKeyboardAction(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onCancel();
-            }
-        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        mainDialog.registerKeyboardAction(e -> onCancel(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         readProperties("dupree.properties");
 
-        checksumMap = new HashMap<String, Set<File>>();
+        checksumMap = new HashMap<>();
         worker = new DedupeWorker();
     }
 
     private void readProperties(final String filename) {
 
-        properties = new Properties();
+        var properties = new Properties();
 
-        Resource resource = new ClassPathResource(filename);
+        var resource = new ClassPathResource(filename);
 
         try {
             properties.load(resource.getInputStream());
@@ -141,7 +128,7 @@ public class DedupeLauncher extends JDialog {
 
         @Override
         protected Void doInBackground() throws Exception {
-            fileRecurse = new FileRecurse(Checksum.SHA256, new DedupeUICallback(worker, pathField));
+            var fileRecurse = new FileRecurse(Checksum.SHA256, new DedupeUICallback(worker, pathField));
             fileRecurse.iterate(startDirectory, checksumMap);
             return null;
         }
@@ -161,10 +148,10 @@ public class DedupeLauncher extends JDialog {
         }
     }
 
-    class DirectoryFilter extends FileFilter {
+    static class DirectoryFilter extends FileFilter {
 
         @Override
-        public boolean accept(File file) {
+        public boolean accept(final File file) {
             return file != null && file.isDirectory();
         }
 
@@ -192,7 +179,12 @@ public class DedupeLauncher extends JDialog {
 
             } catch(final IOException ioe) {
                 // swallow?
-                System.err.println(ioe);
+                log.error("Error reading file: {}", ioe.getMessage());
+                if (log.isDebugEnabled()) {
+                    for (var m : ioe.getStackTrace()) {
+                        logStackTraceElement(m);
+                    }
+                }
             }
         }
 
@@ -207,6 +199,10 @@ public class DedupeLauncher extends JDialog {
         dialog.pack();
         dialog.setVisible(true);
         System.exit(0);
+    }
+
+    private void logStackTraceElement(final StackTraceElement e) {
+        log.debug("{} : {} : {} : {}", e.getClassName(), e.getMethodName(), e.getFileName(), e.getLineNumber());
     }
 
     private JPanel mainDialog;

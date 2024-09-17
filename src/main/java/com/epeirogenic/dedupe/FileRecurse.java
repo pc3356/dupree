@@ -1,10 +1,12 @@
 package com.epeirogenic.dedupe;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.HiddenFileFilter;
-import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -12,26 +14,21 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+@Setter
+@Getter
+@Slf4j
 public class FileRecurse {
-
-    private final static Logger LOGGER = Logger.getLogger(FileRecurse.class);
 
     private final Checksum checksum;
     private final Callback callback;
-    private boolean ignoreHiddenDirectories = true;
-    private boolean ignoreHiddenFiles = true;
+    private boolean ignoreHiddenDirectories;
+    private boolean ignoreHiddenFiles;
 
     public FileRecurse(final Checksum checksum, final Callback callback) {
         this.checksum = checksum;
         this.callback = callback;
-    }
-
-    public void setIgnoreHiddenDirectories(final boolean ignore) {
-        ignoreHiddenDirectories = ignore;
-    }
-
-    public void setIgnoreHiddenFiles(final boolean ignore) {
-        ignoreHiddenFiles = ignore;
+        this.ignoreHiddenDirectories = true;
+        this.ignoreHiddenFiles = true;
     }
 
     private void iterateOverFiles(File[] files, Map<String, Set<File>> checksumMap) {
@@ -45,7 +42,7 @@ public class FileRecurse {
                     checksumMap.put(checksumString, fileSet);
                 } catch (Exception e) {
                     // log this
-                    LOGGER.warn(e);
+                    log.warn("Exception in iteration", e);
                 }
             }
         }
@@ -56,7 +53,7 @@ public class FileRecurse {
         if(checksumMap.containsKey(checksumString)) {
             return checksumMap.get(checksumString);
         } else {
-            return new LinkedHashSet<File>();
+            return new LinkedHashSet<>();
         }
     } 
             
@@ -122,12 +119,12 @@ public class FileRecurse {
     public final static Callback LOG_CALLBACK = new Callback() {
         @Override
         public void currentFile(final File file) {
-            LOGGER.info(file.getAbsolutePath());
+            log.info(file.getAbsolutePath());
         }
 
         @Override
         public void currentDirectory(final File directory) {
-            LOGGER.info(directory.getAbsolutePath());
+            log.info(directory.getAbsolutePath());
         }
     };
 }
