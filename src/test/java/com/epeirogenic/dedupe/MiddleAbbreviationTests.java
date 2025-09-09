@@ -1,10 +1,9 @@
 package com.epeirogenic.dedupe;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MiddleAbbreviationTests {
 
@@ -17,7 +16,8 @@ public class MiddleAbbreviationTests {
 
         String actual = StringUtils.abbreviateMiddle(pathString, "...", 20);
 
-        assertThat(actual.length(), is(expectedLength));
-        assertThat(actual, is(expected));
+        assertThat(actual).hasSize(expectedLength);
+        assertThat(actual.length()).isEqualTo(expectedLength);
+        assertThat(actual).isEqualTo(expected);
     }
 }
