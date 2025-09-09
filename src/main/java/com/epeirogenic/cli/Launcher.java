@@ -36,7 +36,7 @@ public class Launcher {
 
             final FileRecurse fileRecurse = new FileRecurse(Checksum.SHA256, new SummaryCallback());
 
-            final Map<String, Set<File>> checksums = new HashMap<String, Set<File>>();
+            final Map<String, Set<File>> checksums = new HashMap<>();
             fileRecurse.iterate(startPoint, checksums);
             System.out.print((char)13);
             int duplicates = countDuplicates(checksums);
@@ -64,21 +64,19 @@ public class Launcher {
         final StringBuilder output = new StringBuilder();
         for(Map.Entry<String, Set<File>> entry : checksums.entrySet()) {
             if(entry.getValue().size() > 1) {
-                if(entry.getValue() != null) {
-                    for (final File match : entry.getValue()) {
-                        String path;
-                        try {
-                            path = match.getCanonicalPath();
-                        } catch (IOException ioe) {
-                            path = "Error getting path";
-                        }
-                        output.append(entry.getKey())
-                                .append(',')
-                                .append(path)
-                                .append(',')
-                                .append(match.length())
-                                .append('\n');
+                for (final File match : entry.getValue()) {
+                    String path;
+                    try {
+                        path = match.getCanonicalPath();
+                    } catch (IOException ioe) {
+                        path = "Error getting path";
                     }
+                    output.append(entry.getKey())
+                            .append(',')
+                            .append(path)
+                            .append(',')
+                            .append(match.length())
+                            .append('\n');
                 }
             }
         }
@@ -106,17 +104,6 @@ class SummaryCallback implements FileRecurse.Callback {
 
     @Override
     public void currentFile(final File file) {
-//        System.out.print((char)13);
-//        for(int i = 0; i < currentOutput.length(); i++) {
-//            System.out.print(' ');
-//        }
-//        try {
-//            currentOutput = file.getCanonicalPath();
-//            System.out.print((char)13);
-//            System.out.print(currentOutput);
-//        } catch(IOException ioe) {
-//            ioe.printStackTrace(System.err);
-//        }
     }
 
     @Override

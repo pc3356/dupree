@@ -42,20 +42,6 @@ public enum Checksum {
         return getHex(checksumBytes);
     }
 
-//    public static void main(final String args[]) {
-//
-//        final Checksum checksum = Checksum.MD5;
-//
-//        try {
-//            for(final String filename : args) {
-//                System.out.println(filename + " : " + checksum.generateFor(new File(filename)));
-//            }
-//        }
-//        catch (final Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     private static final String HEXES = "0123456789ABCDEF";
 
     private String getHex(final byte[] checksumBytes) {
@@ -69,12 +55,4 @@ public enum Checksum {
         }
         return hex.toString();
     }
-
-//    private String getHexString(final byte[] checksumBytes) {
-//        var result = new StringBuilder();
-//        for (final byte b : checksumBytes) {
-//            result.append(Integer.toString( ( b & 0xff ) + 0x100, 16).substring( 1 ));
-//        }
-//        return result.toString();
-//    }
 }

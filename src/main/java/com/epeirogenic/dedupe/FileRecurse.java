@@ -94,19 +94,6 @@ public class FileRecurse {
         void currentDirectory(File directory);
     }
 
-//    public final static Callback SYSTEM_CALLBACK = new Callback() {
-//
-//        @Override
-//        public void currentFile(final File file) {
-//            System.out.println(file.getAbsolutePath());
-//        }
-//
-//        @Override
-//        public void currentDirectory(final File directory) {
-//            System.out.println(directory.getAbsolutePath());
-//        }
-//    };
-
     public final static Callback NOOP_CALLBACK = new Callback() {
 
         @Override
@@ -116,15 +103,4 @@ public class FileRecurse {
         public void currentDirectory(final File directory) {}
     };
 
-//    public final static Callback LOG_CALLBACK = new Callback() {
-//        @Override
-//        public void currentFile(final File file) {
-////            log.info(file.getAbsolutePath());
-//        }
-
-//        @Override
-//        public void currentDirectory(final File directory) {
-//            log.info(directory.getAbsolutePath());
-//        }
-//    };
 }

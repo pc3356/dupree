@@ -150,19 +150,6 @@ public class DedupeLauncher extends JDialog {
         }
     }
 
-//    static class DirectoryFilter extends FileFilter {
-//
-//        @Override
-//        public boolean accept(final File file) {
-//            return file != null && file.isDirectory();
-//        }
-//
-//        @Override
-//        public String getDescription() {
-//            return "Directory filter";
-//        }
-//    }
-
     class DedupeUICallback implements FileRecurse.Callback {
 
         private final DedupeWorker dw;
@@ -201,22 +188,10 @@ public class DedupeLauncher extends JDialog {
         return Objects.requireNonNullElse(propertiesFilename, DEFAULT_PROPERTIES_FILESNAME);
     }
 
-//    public static void main(final String[] args) {
-//        final DedupeLauncher dialog = new DedupeLauncher();
-//        dialog.pack();
-//        dialog.setVisible(true);
-//        System.exit(0);
-//    }
-
-//    private void logStackTraceElement(final StackTraceElement e) {
-//        log.debug("{} : {} : {} : {}", e.getClassName(), e.getMethodName(), e.getFileName(), e.getLineNumber());
-//    }
-
     private JPanel mainDialog;
     private JButton buttonOK;
     private JButton buttonCancel;
     private JButton chooseButton;
-//    private JScrollPane infoPanel;
     private JTextField pathField;
     private JTextField startDirectoryField;
 }
