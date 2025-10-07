@@ -2,16 +2,18 @@ package com.epeirogenic.cli;
 
 import com.epeirogenic.dedupe.Checksum;
 import com.epeirogenic.dedupe.FileRecurse;
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.text.MessageFormat;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class Launcher {
 
     private final static String DEFAULT_FILENAME_FORMAT = "dupree-{0}.csv";
@@ -76,48 +78,49 @@ public class Launcher {
                             .append(path)
                             .append(',')
                             .append(match.length())
+                            .append(',')
+                            .append(match.lastModified()/1000)
+                            .append(',')
+                            .append(Instant.ofEpochSecond((match.lastModified()/1000)))
                             .append('\n');
                 }
             }
         }
 
         try {
-            FileUtils.writeStringToFile(outputFile, output.toString());
+            Files.write(outputFile.toPath(), output.toString().getBytes());
         } catch(final IOException ioe) {
-            System.err.println("Unable to write output");
-            ioe.printStackTrace(System.err);
+            log.error("Unable to write output");
+            if (log.isDebugEnabled()) {
+                ioe.printStackTrace(System.err);
+            }
         }
     }
 
     private static int countDuplicates(final Map<String, Set<File>> checksums) {
-        int c = 0;
-        for(final Map.Entry<String, Set<File>> entry : checksums.entrySet()) {
-            if(entry.getValue().size() > 1) c++;
-        }
-        return c;
+        return (int) checksums.entrySet().stream().filter(e -> e.getValue().size() > 1).count();
     }
 }
 
 class SummaryCallback implements FileRecurse.Callback {
 
-    String currentOutput = "";
-
+    // print statements are deliberate - part of UI
     @Override
     public void currentFile(final File file) {
     }
 
     @Override
     public void currentDirectory(final File directory) {
-        System.out.print((char) 13);
-        for(int i = 0; i < currentOutput.length(); i++) {
-            System.out.print(' ');
-        }
+        printLn();
         try {
-            currentOutput = directory.getCanonicalPath();
-            System.out.print((char)13);
-            System.out.print(currentOutput);
+            printLn();
+            System.out.print(directory.getCanonicalPath());
         } catch(final IOException ioe) {
             ioe.printStackTrace(System.err);
         }
+    }
+
+    private void printLn() {
+        System.out.print((char) 13);
     }
 }

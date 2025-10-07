@@ -40,8 +40,8 @@ public class DedupeLauncher extends JDialog {
 
         if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
 
-//            log.info("getCurrentDirectory(): {}", fileChooser.getCurrentDirectory());
-//            log.info("getSelectedFile() : {}", fileChooser.getSelectedFile());
+            log.info("getCurrentDirectory(): {}", fileChooser.getCurrentDirectory());
+            log.info("getSelectedFile() : {}", fileChooser.getSelectedFile());
 
             startDirectory = fileChooser.getSelectedFile();
             buttonOK.setEnabled(true);
@@ -62,12 +62,12 @@ public class DedupeLauncher extends JDialog {
         try {
             worker.doInBackground();
         } catch (Exception e) {
-//            log.error("Exception encountered: {}", e.getMessage());
-//            if (log.isDebugEnabled()) {
-//                for ( var m : e.getStackTrace()) {
-//                    logStackTraceElement(m);
-//                }
-//            }
+            log.error("Exception encountered: {}", e.getMessage());
+            if (log.isDebugEnabled()) {
+                for ( var m : e.getStackTrace()) {
+                    logStackTraceElement(m);
+                }
+            }
         }
         //dispose();
     }
@@ -156,7 +156,7 @@ public class DedupeLauncher extends JDialog {
 
         public DedupeUICallback(final DedupeWorker dedupeWorker, final JTextField currentFileField) {
             this.dw = dedupeWorker;
-//            log.info("Created callback");
+            log.info("Created callback");
         }
 
         @Override
@@ -169,12 +169,12 @@ public class DedupeLauncher extends JDialog {
 
             } catch(final IOException ioe) {
                 // swallow?
-//                log.error("Error reading file: {}", ioe.getMessage());
-//                if (log.isDebugEnabled()) {
-//                    for (var m : ioe.getStackTrace()) {
-//                        logStackTraceElement(m);
-//                    }
-//                }
+                log.error("Error reading file: {}", ioe.getMessage());
+                if (log.isDebugEnabled()) {
+                    for (var m : ioe.getStackTrace()) {
+                        logStackTraceElement(m);
+                    }
+                }
             }
         }
 
@@ -188,7 +188,12 @@ public class DedupeLauncher extends JDialog {
         return Objects.requireNonNullElse(propertiesFilename, DEFAULT_PROPERTIES_FILESNAME);
     }
 
+    private void logStackTraceElement(final StackTraceElement element) {
+        log.error(element.toString());
+    }
+
     private JPanel mainDialog;
+    private JScrollPane infoPanel;
     private JButton buttonOK;
     private JButton buttonCancel;
     private JButton chooseButton;

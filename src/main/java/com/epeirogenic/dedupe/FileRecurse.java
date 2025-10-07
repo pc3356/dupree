@@ -1,18 +1,18 @@
 package com.epeirogenic.dedupe;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
-import org.apache.commons.io.filefilter.FileFileFilter;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.HiddenFileFilter;
-
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileNotFoundException;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.filefilter.CanReadFileFilter;
+import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.HiddenFileFilter;
 
 @Setter
 @Getter
@@ -42,7 +42,9 @@ public class FileRecurse {
                     checksumMap.put(checksumString, fileSet);
                 } catch (Exception e) {
                     // log this
-//                    log.warn("Exception in iteration", e);
+                    if (!(e instanceof FileNotFoundException)) {
+                        log.warn("Exception in iteration", e);
+                    }
                 }
             }
         }
@@ -73,9 +75,9 @@ public class FileRecurse {
     
     private FileFilter getFileFilter() {
         if(ignoreHiddenDirectories) {
-            return FileFilterUtils.and(FileFileFilter.FILE, HiddenFileFilter.VISIBLE);
+            return FileFilterUtils.and(CanReadFileFilter.CAN_READ, HiddenFileFilter.VISIBLE);
         } else {
-            return FileFileFilter.FILE;
+            return CanReadFileFilter.CAN_READ;
         }
     }
     
